@@ -33,14 +33,6 @@ public class router_app extends AbstractVerticle {
 	  router.put("/addOrder").handler(this::handleAddOrder);
 	  router.get("/getOrders").handler(this::handleListOrders);
 
-	  // Bind "/" to our hello message - so we are still compatible.
-	  router.route("/").handler(routingContext -> {
-	    HttpServerResponse response = routingContext.response();
-	    response
-	        .putHeader("content-type", "text/html")
-	        .end("<h1>Hello from my first Vert.x 3 application</h1>");
-	  });
-
 	  // Create the HTTP server and pass the "accept" method to the request handler.
 	  vertx
 	      .createHttpServer()
