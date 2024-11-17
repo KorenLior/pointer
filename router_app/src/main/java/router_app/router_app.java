@@ -13,6 +13,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.sstore.LocalSessionStore;
+import io.vertx.ext.web.sstore.SessionStore;
+import io.vertx.ext.web.handler.SessionHandler;
 
 //import workerVerticle.workerVerticle;
 
@@ -21,6 +24,7 @@ public class router_app extends AbstractVerticle {
   private HashMap<String,String> usersMap = new HashMap<String, String>();
   @Override
   public void start(Future<Void> fut) {
+	  SessionStore store = LocalSessionStore.create(vertx);
 	  try {
 		initMap();
 		} catch (FileNotFoundException e) {
@@ -30,12 +34,13 @@ public class router_app extends AbstractVerticle {
 	  vertx.deployVerticle(workerVerticle.class.getName());
 	  // Create a router object.
 	  Router router = Router.router(vertx);
+	  router.route().handler(SessionHandler.create(store));
 	  router.route().handler(BodyHandler.create());
 	  router.route("/").handler(routingContext -> {
 	      HttpServerResponse response = routingContext.response();
 	      response
 	          .putHeader("content-type", "text/html")
-	          .end("<h1>Hello from my first Vert.x 3 application</h1>");
+	          .end("<h1>ROUTER APP</h1>");
 	    });
 	  router.put("/login").handler(this::handleLogin);
 	  router.put("/logout").handler(this::handleLogout);
