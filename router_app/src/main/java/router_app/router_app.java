@@ -14,6 +14,8 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 
+//import workerVerticle.workerVerticle;
+
 public class router_app extends AbstractVerticle {
   private Boolean loggedIn = false;
   private HashMap<String,String> usersMap = new HashMap<String, String>();
@@ -25,14 +27,20 @@ public class router_app extends AbstractVerticle {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	  vertx.deployVerticle(workerVerticle.class.getName());
 	  // Create a router object.
 	  Router router = Router.router(vertx);
 	  router.route().handler(BodyHandler.create());
+	  router.route("/").handler(routingContext -> {
+	      HttpServerResponse response = routingContext.response();
+	      response
+	          .putHeader("content-type", "text/html")
+	          .end("<h1>Hello from my first Vert.x 3 application</h1>");
+	    });
 	  router.put("/login").handler(this::handleLogin);
 	  router.put("/logout").handler(this::handleLogout);
 	  router.put("/addOrder").handler(this::handleAddOrder);
 	  router.get("/getOrders").handler(this::handleListOrders);
-
 	  // Create the HTTP server and pass the "accept" method to the request handler.
 	  vertx
 	      .createHttpServer()
@@ -112,15 +120,27 @@ public class router_app extends AbstractVerticle {
 	    String productID = routingContext.request().getParam("productID");
 	    HttpServerResponse response = routingContext.response();
 	    if (productID == null) {
-	      sendError(400, response);
+	    	vertx.eventBus().send("workerVerticle","", reply->{
+	    		  routingContext.request().response().end((String)reply.result().body());});
+	    	response
+  	        .putHeader("content-type", "text/html")
+  	        .end("<h1>".concat(response.getStatusMessage()).concat("<h1>"));
+	    	
+	      //sendError(400, response);
 	    } else {
 	      JsonObject query = routingContext.getBodyAsJson();
 	      if (query == null) {
+	    	  response
+  	        .putHeader("content-type", "text/html")
+  	        .end("<h1>OrderLIST</h1>");
 	    	  vertx.eventBus().send("workerVerticle","", reply->{
 	    		  routingContext.request().response().end((String)reply.result().body());
 	    	  });
 	      } else {
 	    	  // this doesnt work yet
+	    	  response
+	  	        .putHeader("content-type", "text/html")
+	  	        .end("<h1>OrderLIST2222</h1>");
 	    	  vertx.eventBus().send("workerVerticle",query, reply->{
 	    		  routingContext.request().response().end((String)reply.result().body());
 	    	  });
